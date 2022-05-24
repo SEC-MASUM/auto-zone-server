@@ -18,6 +18,27 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+//*-------------Verify User using JWT---------------*//
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res
+      .status(401)
+      .send({ success: false, message: "Unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  // verify a token symmetric
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res
+        .status(403)
+        .send({ success: false, message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
 //*-----------------run Function -------------------*//
 async function run() {
   try {
@@ -26,6 +47,11 @@ async function run() {
     console.log("DB Connected");
 
     //*------------------User-----------------*//
+    app.get("/user", async (req, res) => {
+      const users = await userCollection.find({}).toArray();
+      res.send(users);
+    });
+
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -41,6 +67,29 @@ async function run() {
         { expiresIn: "1d" }
       );
       res.send({ result, accessToken: jwtToken });
+    });
+
+    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      console.log(result);
+      res.send(result);
+    });
+    app.put("/user/removeAdmin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: { role: "" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      console.log(result);
+      res.send(result);
     });
   } finally {
     // await client.close();
