@@ -44,14 +44,39 @@ async function run() {
   try {
     await client.connect();
     const userCollection = client.db("autoZone").collection("users");
+    const reviewCollection = client.db("autoZone").collection("reviews");
     console.log("DB Connected");
 
+    //*-----------------Verify Admin------------------*//
+    const verifyAdmin = async (req, res, next) => {
+      const requesterEmail = req.decoded.email;
+      const requesterData = await userCollection.findOne({
+        email: requesterEmail,
+      });
+      if (requesterData.role === "admin") {
+        next();
+      } else {
+        return res
+          .status(403)
+          .send({ success: false, message: "Forbidden access" });
+      }
+    };
+
+    //*------------------Add Review-----------------*//
+    app.post("/review", verifyJWT, async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
+
     //*------------------User-----------------*//
+    // Load All user data
     app.get("/user", async (req, res) => {
       const users = await userCollection.find({}).toArray();
       res.send(users);
     });
 
+    // insert user email and send JWT to client
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -69,7 +94,8 @@ async function run() {
       res.send({ result, accessToken: jwtToken });
     });
 
-    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+    // add user role as admin
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
       const options = { upsert: true };
@@ -80,17 +106,28 @@ async function run() {
       console.log(result);
       res.send(result);
     });
-    app.put("/user/removeAdmin/:email", verifyJWT, async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: { role: "" },
-      };
-      const result = await userCollection.updateOne(filter, updateDoc, options);
-      console.log(result);
-      res.send(result);
-    });
+
+    // remove user admin role
+    app.put(
+      "/user/removeAdmin/:email",
+      verifyJWT,
+      verifyAdmin,
+      async (req, res) => {
+        const email = req.params.email;
+        const filter = { email: email };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: { role: "" },
+        };
+        const result = await userCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        console.log(result);
+        res.send(result);
+      }
+    );
   } finally {
     // await client.close();
   }
