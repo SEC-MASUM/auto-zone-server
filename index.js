@@ -45,6 +45,7 @@ async function run() {
     await client.connect();
     const userCollection = client.db("autoZone").collection("users");
     const reviewCollection = client.db("autoZone").collection("reviews");
+    const productCollection = client.db("autoZone").collection("products");
     console.log("DB Connected");
 
     //*-----------------Verify Admin------------------*//
@@ -67,6 +68,21 @@ async function run() {
       const review = req.body;
       const result = await reviewCollection.insertOne(review);
       res.send(result);
+    });
+    //*------------------Product-----------------*//
+    // Add Product
+    app.post("/product", verifyJWT, async (req, res) => {
+      const product = req.body;
+      console.log(product);
+      const result = await productCollection.insertOne(product);
+      console.log(result);
+      res.send(result);
+    });
+
+    // Get All Product
+    app.get("/product", async (req, res) => {
+      const products = await productCollection.find({}).toArray();
+      res.send(products);
     });
 
     //*------------------User-----------------*//
