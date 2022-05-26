@@ -75,6 +75,7 @@ async function run() {
     app.post("/order", verifyJWT, async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
+      console.log(result);
       res.send(result);
     });
     // Get order by user email
@@ -82,8 +83,32 @@ async function run() {
       const email = req.params.email;
       const query = { email: email };
       const orders = await orderCollection.find(query).toArray();
-      console.log(orders);
+      // console.log(orders);
       res.send(orders);
+    });
+    // Get All order
+    app.get("/order", async (req, res) => {
+      const orders = await orderCollection.find().toArray();
+      // console.log(orders);
+      res.send(orders);
+    });
+
+    // Get order by id
+    app.get("/payment/order/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: ObjectId(id) };
+      const order = await orderCollection.findOne(filter);
+      console.log(order);
+      res.send(order);
+    });
+
+    // Delete order by id
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
     });
 
     //*------------------Product-----------------*//
@@ -92,7 +117,7 @@ async function run() {
       const product = req.body;
       console.log(product);
       const result = await productCollection.insertOne(product);
-      console.log(result);
+      // console.log(result);
       res.send(result);
     });
 
