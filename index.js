@@ -152,12 +152,12 @@ async function run() {
     // Patch Order update when paid
     app.patch("/payment/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
-      const payment = req.body;
+      const order = req.body;
       const filter = { _id: ObjectId(id) };
       const updateDoc = {
         $set: {
-          status: "paid",
-          transactionId: payment.transactionId,
+          status: order.status,
+          transactionId: order.transactionId,
         },
       };
 
