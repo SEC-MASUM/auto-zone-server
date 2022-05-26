@@ -79,7 +79,7 @@ async function run() {
       res.send(result);
     });
     // Get order by user email
-    app.get("/order/:email", async (req, res) => {
+    app.get("/order/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const orders = await orderCollection.find(query).toArray();
@@ -87,14 +87,14 @@ async function run() {
       res.send(orders);
     });
     // Get All order
-    app.get("/order", async (req, res) => {
+    app.get("/order", verifyJWT, async (req, res) => {
       const orders = await orderCollection.find().toArray();
       // console.log(orders);
       res.send(orders);
     });
 
     // Get order by id
-    app.get("/payment/order/:id", async (req, res) => {
+    app.get("/payment/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: ObjectId(id) };
@@ -104,7 +104,7 @@ async function run() {
     });
 
     // Delete order by id
-    app.delete("/order/:id", async (req, res) => {
+    app.delete("/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await orderCollection.deleteOne(query);
@@ -122,28 +122,29 @@ async function run() {
     });
 
     // Get All Product
-    app.get("/product", async (req, res) => {
+    app.get("/product", verifyJWT, async (req, res) => {
       const products = await productCollection.find({}).toArray();
       res.send(products);
     });
     // Get Product by id
-    app.get("/product/:id", async (req, res) => {
+    app.get("/product/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const product = await productCollection.findOne(query);
       res.send(product);
     });
     //Delete Product By Id
-    app.delete("/product/:id", async (req, res) => {
+    app.delete("/product/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await productCollection.deleteOne(query);
+      console.log(result);
       res.send(result);
     });
 
     //*------------------User-----------------*//
     // Load All user data
-    app.get("/user", async (req, res) => {
+    app.get("/user", verifyJWT, async (req, res) => {
       const users = await userCollection.find({}).toArray();
       res.send(users);
     });
