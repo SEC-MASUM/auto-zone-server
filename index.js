@@ -4,6 +4,7 @@ var cors = require("cors");
 var jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const host = "localhost";
 const port = process.env.PORT || 5000;
@@ -49,6 +50,51 @@ async function run() {
     const orderCollection = client.db("autoZone").collection("orders");
     console.log("DB Connected");
 
+    //*----------------Payment------------------*//
+    app.post("/create-payment-intent", async (req, res) => {
+      const { totalPrice } = req.body;
+      //  Amount must be no more than $999,999.99
+      let amount = totalPrice * 100;
+      //! This code is not practical use case it is only for error handling in this project
+      //TODO : Must remove this code in real project
+      if (amount > 10000) {
+        amount = parseInt(amount / 10000);
+      }
+      //!----------------------------------------------------------
+      // console.log(amount);
+
+      // if (amount > 99999900.99) {
+      //   console.log(amount, 99999900.99);
+      //   return res.status(425).send({
+      //     success: false,
+      //     message: "Amount must be no more than $999,999.99",
+      //   });
+      // }
+      // console.log(amount);
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        description: "Car Parts  manufacturing",
+        shipping: {
+          name: "Jenny Rosen",
+          address: {
+            line1: "510 Townsend St",
+            postal_code: "98140",
+            city: "San Francisco",
+            state: "CA",
+            country: "US",
+          },
+        },
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+
+      console.log(paymentIntent.client_secret);
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
     //*-----------------Verify Admin------------------*//
     const verifyAdmin = async (req, res, next) => {
       const requesterEmail = req.decoded.email;
@@ -75,7 +121,7 @@ async function run() {
     app.post("/order", verifyJWT, async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
-      console.log(result);
+      // console.log(result);
       res.send(result);
     });
     // Get order by user email
@@ -96,11 +142,29 @@ async function run() {
     // Get order by id
     app.get("/payment/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const filter = { _id: ObjectId(id) };
       const order = await orderCollection.findOne(filter);
-      console.log(order);
+      // console.log(order);
       res.send(order);
+    });
+
+    // Patch Order update when paid
+    app.patch("/payment/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "paid",
+          transactionId: payment.transactionId,
+        },
+      };
+
+      const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
+      console.log(updatedOrder);
+
+      res.send(updatedOrder);
     });
 
     // Delete order by id
@@ -115,7 +179,7 @@ async function run() {
     // Add Product
     app.post("/product", verifyJWT, async (req, res) => {
       const product = req.body;
-      console.log(product);
+      // console.log(product);
       const result = await productCollection.insertOne(product);
       // console.log(result);
       res.send(result);
@@ -138,7 +202,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await productCollection.deleteOne(query);
-      console.log(result);
+      // console.log(result);
       res.send(result);
     });
 
@@ -176,7 +240,7 @@ async function run() {
         $set: { role: "admin" },
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      console.log(result);
+      // console.log(result);
       res.send(result);
     });
 
@@ -197,7 +261,7 @@ async function run() {
           updateDoc,
           options
         );
-        console.log(result);
+        // console.log(result);
         res.send(result);
       }
     );
