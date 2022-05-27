@@ -250,6 +250,15 @@ async function run() {
       res.send(result);
     });
 
+    // GET admin role user by email
+    app.get("/user/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      console.log(isAdmin);
+      res.send({ admin: isAdmin });
+    });
+
     // remove user admin role
     app.put(
       "/user/removeAdmin/:email",
