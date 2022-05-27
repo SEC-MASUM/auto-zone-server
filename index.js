@@ -51,7 +51,7 @@ async function run() {
     console.log("DB Connected");
 
     //*----------------Payment------------------*//
-    app.post("/create-payment-intent", async (req, res) => {
+    app.post("/create-payment-intent",verifyJWT, async (req, res) => {
       const { totalPrice } = req.body;
       //  Amount must be no more than $999,999.99
       let amount = totalPrice * 100;
@@ -139,7 +139,7 @@ async function run() {
       res.send(orders);
     });
     // Get All order
-    app.get("/order", verifyJWT, async (req, res) => {
+    app.get("/order", verifyJWT,verifyAdmin, async (req, res) => {
       const orders = await orderCollection.find().toArray();
       // console.log(orders);
       res.send(orders);
@@ -183,7 +183,7 @@ async function run() {
 
     //*------------------Product-----------------*//
     // Add Product
-    app.post("/product", verifyJWT, async (req, res) => {
+    app.post("/product", verifyJWT,verifyAdmin, async (req, res) => {
       const product = req.body;
       // console.log(product);
       const result = await productCollection.insertOne(product);
@@ -192,7 +192,7 @@ async function run() {
     });
 
     // Get All Product
-    app.get("/product", verifyJWT, async (req, res) => {
+    app.get("/product", verifyJWT,verifyAdmin, async (req, res) => {
       const products = await productCollection.find({}).toArray();
       res.send(products);
     });
@@ -204,7 +204,7 @@ async function run() {
       res.send(product);
     });
     //Delete Product By Id
-    app.delete("/product/:id", verifyJWT, async (req, res) => {
+    app.delete("/product/:id", verifyJWT,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await productCollection.deleteOne(query);
@@ -214,7 +214,7 @@ async function run() {
 
     //*------------------User-----------------*//
     // Load All user data
-    app.get("/user", verifyJWT, async (req, res) => {
+    app.get("/user", verifyJWT,verifyAdmin, async (req, res) => {
       const users = await userCollection.find({}).toArray();
       res.send(users);
     });
@@ -251,7 +251,7 @@ async function run() {
     });
 
     // GET admin role user by email
-    app.get("/user/admin/:email", async (req, res) => {
+    app.get("/user/admin/:email",verifyJWT, async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === "admin";
