@@ -192,7 +192,7 @@ async function run() {
     });
 
     // Get All Product
-    app.get("/product", verifyJWT,verifyAdmin, async (req, res) => {
+    app.get("/product", verifyJWT, async (req, res) => {
       const products = await productCollection.find({}).toArray();
       res.send(products);
     });
