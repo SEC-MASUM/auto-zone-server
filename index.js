@@ -110,11 +110,17 @@ async function run() {
       }
     };
 
-    //*------------------Add Review-----------------*//
+    //*------------------Review-----------------*//
+    // Add review
     app.post("/review", verifyJWT, async (req, res) => {
       const review = req.body;
       const result = await reviewCollection.insertOne(review);
       res.send(result);
+    });
+    // Get all Reviews
+    app.get("/review", verifyJWT, async (req, res) => {
+      const reviews = await reviewCollection.find({}).toArray();
+      res.send(reviews);
     });
     //*------------------Order-----------------*//
     // Add order
