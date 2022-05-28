@@ -218,6 +218,14 @@ async function run() {
       const users = await userCollection.find({}).toArray();
       res.send(users);
     });
+    // Load user data by email
+    app.get("/user/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const user = await userCollection.findOne(filter);
+      console.log(user);
+      res.send(user);
+    });
 
     // insert user email and send JWT to client
     app.put("/user/:email", async (req, res) => {
@@ -280,6 +288,27 @@ async function run() {
         res.send(result);
       }
     );
+    // Patch: User profile update
+    app.patch("/user/updateProfile/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const userInfo = req.body;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: {
+          degree: userInfo.degree,
+          institute: userInfo.institute,
+          phone: userInfo.phone,
+          linkedIn: userInfo.linkedIn,
+          country: userInfo.country,
+          city: userInfo.city,
+        },
+      };
+      // console.log(userInfo);
+      const updatedUser = await userCollection.updateOne(filter, updateDoc);
+      console.log(updatedUser);
+
+      res.send(updatedUser);
+    });
   } finally {
     // await client.close();
   }
