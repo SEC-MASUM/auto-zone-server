@@ -48,6 +48,8 @@ router
    */
   .post(productControllers.saveAProduct);
 
-router.route("/:id").get(viewCount, limiter, productControllers.productDetail);
+router
+  .route("/:id")
+  .get(viewCount, limiter, productControllers.getProductDetail);
 
 module.exports = router;
