@@ -6,8 +6,10 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
+
 const dbConnect = require("./utils/dbConnect");
 const productRoutes = require("./routes/v1/product.route");
+const viewCount = require("./middleware/viewCount");
 
 const host = "localhost";
 const port = process.env.PORT || 5000;
@@ -15,7 +17,13 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// app.use(viewCount);
+
+// Apply the rate limiting middleware to all requests
+// app.use(limiter);
+
 dbConnect();
+
 app.use("/api/v1/product", productRoutes);
 
 //*-------------Verify User using JWT---------------*//
