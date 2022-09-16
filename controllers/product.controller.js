@@ -34,7 +34,16 @@ module.exports.getProductDetail = (req, res) => {
   const foundProduct = products.find(
     (product) => product.id === Number.parseInt(id)
   );
-  res.send(foundProduct);
+  // res.send(foundProduct);
+  res.status(200).send({
+    success: true,
+    message: "Success",
+    data: foundProduct,
+  });
+  // res.status(500).send({
+  //   success: false,
+  //   error: "Internal server error",
+  // });
 };
 
 // module.exports = {
