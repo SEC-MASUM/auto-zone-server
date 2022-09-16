@@ -1,14 +1,15 @@
 const express = require("express");
 const app = express();
 var cors = require("cors");
-var jwt = require("jsonwebtoken");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+// var jwt = require("jsonwebtoken");
+// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const dbConnect = require("./utils/dbConnect");
 const productRoutes = require("./routes/v1/product.route");
 const viewCount = require("./middleware/viewCount");
+const errorHandler = require("./middleware/errorHandler");
 
 const host = "localhost";
 const port = process.env.PORT || 5000;
@@ -320,6 +321,17 @@ app.all("*", (req, res) => {
   res.send("No route found");
 });
 
+// middleware
+app.use(errorHandler);
+
 app.listen(port, () => {
   console.log(`Server is running at http://${host}:${port}`);
+});
+
+// Global error Handler
+process.on("unhandledRejection", (error) => {
+  console.log(error.name, error.message);
+  app.close(() => {
+    process.exit(1);
+  });
 });
