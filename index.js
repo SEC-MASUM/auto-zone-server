@@ -6,7 +6,6 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-
 const dbConnect = require("./utils/dbConnect");
 const productRoutes = require("./routes/v1/product.route");
 const viewCount = require("./middleware/viewCount");
@@ -16,6 +15,8 @@ const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static("public"));
+app.set("view engine", "ejs");
 
 // app.use(viewCount);
 
@@ -305,7 +306,14 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Auto Zone Web Server is Running");
+  // res.send("Auto Zone Web Server is Running");
+  // res.sendFile(__dirname + "/public/text.html");
+  res.render("home.ejs", {
+    id: 34,
+    user: {
+      name: "Masum",
+    },
+  });
 });
 
 app.all("*", (req, res) => {
